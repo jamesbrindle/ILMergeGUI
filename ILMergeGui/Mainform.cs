@@ -163,6 +163,15 @@ namespace ILMergeGui
     //public void SetSearchDirectories(string[] dirs)
     public partial class Mainform : Form
     {
+        [DllImport("shcore.dll")]
+        static extern int SetProcessDpiAwareness(_Process_DPI_Awareness value);
+        enum _Process_DPI_Awareness
+        {
+            Process_DPI_Unaware = 0,
+            Process_System_DPI_Aware = 1,
+            Process_Per_Monitor_DPI_Aware = 2
+        }
+
         #region Fields
 
         /// <summary>
@@ -189,6 +198,8 @@ namespace ILMergeGui
         private int ExitCode;
         private string ExitMsg;
 
+        private List<string> _inputFiles = new List<string>();
+
         #endregion Fields
 
         #region Constructors
@@ -196,8 +207,22 @@ namespace ILMergeGui
         /// <summary>
         /// Constructor.
         /// </summary>
-        public Mainform()
+        public Mainform(string[] args)
         {
+            if (args != null && args.Length > 0)
+            {
+                foreach (var arg in args)
+                {
+                    if (Path.GetExtension(arg).ToLower() == ".dll" ||
+                        Path.GetExtension(arg).ToLower() == ".ocx" ||
+                        Path.GetExtension(arg).ToLower() == ".exe")
+                    {
+                        _inputFiles.Add(arg);
+                    }
+                }
+            }
+
+            SetProcessDpiAwareness(_Process_DPI_Awareness.Process_System_DPI_Aware);
             InitializeComponent();
         }
 
@@ -931,15 +956,15 @@ namespace ILMergeGui
                         else
                         {
                             versions.Add(new DotNet()
-                                {
-                                    key = versionKey,
-                                    name = String.Format(pattern, versionKey + " " + type),
-                                    version = ver,
-                                    x86WindowsPath = x86syspath.TrimEnd(Path.DirectorySeparatorChar),
-                                    x86ProgramFilesPath = x86pfpath.TrimEnd(Path.DirectorySeparatorChar),
-                                    x64WindowsPath = x64syspath.TrimEnd(Path.DirectorySeparatorChar),
-                                    x64ProgramFilesPath = x64pfpath.TrimEnd(Path.DirectorySeparatorChar),
-                                });
+                            {
+                                key = versionKey,
+                                name = String.Format(pattern, versionKey + " " + type),
+                                version = ver,
+                                x86WindowsPath = x86syspath.TrimEnd(Path.DirectorySeparatorChar),
+                                x86ProgramFilesPath = x86pfpath.TrimEnd(Path.DirectorySeparatorChar),
+                                x64WindowsPath = x64syspath.TrimEnd(Path.DirectorySeparatorChar),
+                                x64ProgramFilesPath = x64pfpath.TrimEnd(Path.DirectorySeparatorChar),
+                            });
                         }
                     }
                 }
@@ -1047,7 +1072,7 @@ namespace ILMergeGui
             {
                 ExitMsg = Resources.Error_NoOutputPath;
                 ExitCode = 8;
-                
+
                 if (!AutoClose)
                 {
                     MessageBox.Show(ExitMsg, Resources.Error_Term, MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -1485,11 +1510,6 @@ namespace ILMergeGui
             FormatItems();
         }
 
-        private void LinkILMerge_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Process.Start(LinkILMerge.Text);
-        }
-
         private void ListAssembly_DragDrop(object sender, DragEventArgs e)
         {
             ProcessFiles((String[])e.Data.GetData(DataFormats.FileDrop));
@@ -1885,6 +1905,9 @@ namespace ILMergeGui
                     Environment.Exit(ExitCode);
                 }
             }
+
+            if (_inputFiles.Count > 0)
+                ProcessFiles(_inputFiles.ToArray());
         }
 
         private void ExitILMergeGUI()
