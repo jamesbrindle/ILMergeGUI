@@ -1711,12 +1711,24 @@ namespace ILMergeGui
                 }
             }
 
+            string executingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
             //4) Current Directory...
             if (File.Exists("ILMerge.exe"))
             {
                 iLMergePath = Path.GetFullPath("ILMerge.exe");
 
                 Debug.Print("ILMerge Location Method=Current Directory");
+                Debug.Print("ILMerge Path={0}", iLMergePath);
+            }
+
+            //5) Executing Directory
+            
+            else if (File.Exists(Path.Combine(executingPath, "ILMerge.exe")))
+            {
+                iLMergePath = Path.Combine(executingPath, "ILMerge.exe");
+
+                Debug.Print("ILMerge Location Method=Executing Directory");
                 Debug.Print("ILMerge Path={0}", iLMergePath);
             }
 
@@ -1747,11 +1759,21 @@ namespace ILMergeGui
 
             Debug.Print("[ILRepack]");
 
+            //5) Executing Directory
+            string executingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);            
+
             if (File.Exists(@".\ILRepack.exe"))
             {
                 iLMergePath = Path.GetFullPath(@".\ILRepack.exe");
 
                 Debug.Print("ILRepack Location Method=Current Directory");
+                Debug.Print("ILRepack Path={0}", iLMergePath);
+            }
+            if (File.Exists(Path.Combine(executingPath, "ILRepack.exe")))
+            {
+                iLMergePath = Path.Combine(executingPath, "ILRepack.exe");
+
+                Debug.Print("ILRepack Location Method=Executing Directory");
                 Debug.Print("ILRepack Path={0}", iLMergePath);
             }
             else
